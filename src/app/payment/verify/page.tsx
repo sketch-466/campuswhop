@@ -1,4 +1,7 @@
+
 "use client";
+
+export const dynamic = 'force-dynamic';
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -9,7 +12,7 @@ import Link from "next/link";
 import { Loader2, CheckCircle, XCircle } from "lucide-react";
 
 export default function PaymentVerifyPage() {
-  const [status, setStatus] = useState<<"verifying" | "success" | "failed">("verifying");
+  const [status, setStatus] = useState<"verifying" | "success" | "failed">("verifying");
   const [message, setMessage] = useState("Verifying your payment...");
   const searchParams = useSearchParams();
   const reference = searchParams.get("reference") || searchParams.get("trxref");
