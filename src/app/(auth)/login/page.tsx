@@ -1,106 +1,110 @@
-"use client";
+'use client'
 
-import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { createClient } from "@/lib/supabase/client";
-import { GraduationCap, Loader2 } from "lucide-react";
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Mail, Lock, Loader2, Eye, EyeOff } from 'lucide-react'
+import Link from 'next/link'
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const router = useRouter();
-  const supabase = createClient();
+  const router = useRouter()
+  const supabase = createClientComponentClient()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
+    e.preventDefault()
+    setLoading(true)
+    setError('')
 
-    try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
 
-      if (error) throw error;
-      router.push("/dashboard");
-      router.refresh();
-    } catch (err: any) {
-      setError(err.message || "Failed to login");
-    } finally {
-      setLoading(false);
+    if (error) {
+      setError(error.message)
+      setLoading(false)
+      return
     }
-  };
+
+    router.push('/dashboard')
+    router.refresh()
+  }
 
   return (
-    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-12">
-      <Card className="w-full max-w-md border-whop-border bg-whop-card">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-whop-accent/10">
-            <GraduationCap className="h-6 w-6 text-whop-accent" />
-          </div>
-          <CardTitle className="text-2xl text-white">Welcome back</CardTitle>
-          <CardDescription className="text-gray-400">
-            Sign in to your CampusWhop account
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-gray-300">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@university.edu.ng"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="border-whop-border bg-whop-black text-white placeholder:text-gray-600"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-gray-300">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="border-whop-border bg-whop-black text-white placeholder:text-gray-600"
-              />
-            </div>
+    <div className="min-h-screen flex items-center justify-center px-4 pt-16 bg-gradient-to-b from-background to-muted/20">
+      <div className="w-full max-w-md">
+        <Card>
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl">Welcome back</CardTitle>
+            <CardDescription>Sign in to your CampusWhop account</CardDescription>
+          </CardHeader>
+          <CardContent>
             {error && (
-              <div className="rounded-md bg-red-500/10 p-3 text-sm text-red-400">
+              <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-sm text-destructive">
                 {error}
               </div>
             )}
-            <Button
-              type="submit"
-              className="w-full bg-whop-accent hover:bg-whop-accent/90 text-white"
-              disabled={loading}
-            >
-              {loading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : null}
-              Sign In
-            </Button>
-          </form>
-          <p className="mt-4 text-center text-sm text-gray-400">
-            Don&apos;t have an account?{" "}
-            <Link href="/register" className="text-whop-accent hover:underline">
-              Sign up
-            </Link>
-          </p>
-        </CardContent>
-      </Card>
+
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@university.edu.ng"
+                    required
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter your password"
+                    required
+                    className="pl-10 pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <Button type="submit" disabled={loading} className="w-full">
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Sign In'}
+              </Button>
+            </form>
+
+            <p className="text-center text-sm text-muted-foreground mt-6">
+              Don&apos;t have an account?{' '}
+              <Link href="/auth/register" className="text-primary hover:underline font-medium">
+                Sign up
+              </Link>
+            </p>
+          </CardContent>
+        </Card>
+      </div>
     </div>
-  );
+  )
 }
