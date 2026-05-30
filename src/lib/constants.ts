@@ -1,69 +1,72 @@
-export const APP_NAME = "CampusWhop";
-export const APP_DESCRIPTION = "The creator marketplace for Nigerian university students";
-
+// Nigerian Universities
 export const NIGERIAN_UNIVERSITIES = [
-  { id: "unilag", name: "University of Lagos", state: "Lagos", abbr: "UNILAG" },
-  { id: "ui", name: "University of Ibadan", state: "Oyo", abbr: "UI" },
-  { id: "oau", name: "Obafemi Awolowo University", state: "Osun", abbr: "OAU" },
-  { id: "uniben", name: "University of Benin", state: "Edo", abbr: "UNIBEN" },
-  { id: "unn", name: "University of Nigeria, Nsukka", state: "Enugu", abbr: "UNN" },
-  { id: "abu", name: "Ahmadu Bello University", state: "Kaduna", abbr: "ABU" },
-  { id: "unilorin", name: "University of Ilorin", state: "Kwara", abbr: "UNILORIN" },
-  { id: "lautech", name: "Ladoke Akintola University", state: "Oyo", abbr: "LAUTECH" },
-  { id: "futa", name: "Federal University of Technology Akure", state: "Ondo", abbr: "FUTA" },
-  { id: "covenant", name: "Covenant University", state: "Ogun", abbr: "CU" },
-  { id: "babcock", name: "Babcock University", state: "Ogun", abbr: "BU" },
-  { id: "unizik", name: "Nnamdi Azikiwe University", state: "Anambra", abbr: "UNIZIK" },
-  { id: "futo", name: "Federal University of Technology Owerri", state: "Imo", abbr: "FUTO" },
-  { id: "unical", name: "University of Calabar", state: "Cross River", abbr: "UNICAL" },
-  { id: "uniport", name: "University of Port Harcourt", state: "Rivers", abbr: "UNIPORT" },
-  { id: "biu", name: "Benson Idahosa University", state: "Edo", abbr: "BIU" },
-  { id: "eksu", name: "Ekiti State University", state: "Ekiti", abbr: "EKSU" },
-  { id: "tasued", name: "Tai Solarin University", state: "Ogun", abbr: "TASUED" },
-  { id: "run", name: "Redeemer's University", state: "Osun", abbr: "RUN" },
-  { id: "aau", name: "Ambrose Alli University", state: "Edo", abbr: "AAU" },
-  { id: "funai", name: "Federal University Ndufu-Alike Ikwo", state: "Ebonyi", abbr: "FUNAI" },
-] as const;
+  'Alex Ekwueme Federal University (AE-FUNAI)',
+  'University of Lagos (UNILAG)',
+  'University of Ibadan (UI)',
+  'Obafemi Awolowo University (OAU)',
+  'University of Nigeria, Nsukka (UNN)',
+  'Ahmadu Bello University (ABU)',
+  'University of Benin (UNIBEN)',
+  'University of Port Harcourt (UNIPORT)',
+  'Federal University of Technology, Akure (FUTA)',
+  'Covenant University',
+  'Babcock University',
+  'University of Ilorin (UNILORIN)',
+  'University of Abuja (UNIABUJA)',
+  'Nnamdi Azikiwe University (UNIZIK)',
+  'Lagos State University (LASU)',
+  'University of Calabar (UNICAL)',
+  'University of Uyo (UNIUYO)',
+  'Federal University of Technology, Minna (FUTMINNA)',
+  'University of Jos (UNIJOS)',
+  'Rivers State University (RSU)',
+] as const
 
+// Faculties
+export const FACULTIES = [
+  'Arts', 'Science', 'Social Sciences', 'Engineering',
+  'Medicine', 'Law', 'Agriculture', 'Education',
+  'Management Sciences', 'Environmental Sciences',
+] as const
+
+// Levels
+export const LEVELS = [
+  '100 Level', '200 Level', '300 Level', '400 Level',
+  '500 Level', 'Masters', 'PhD',
+] as const
+
+// Departments by Faculty
+export const DEPARTMENTS: Record<string, string[]> = {
+  'Science': ['Computer Science','Mathematics','Physics','Chemistry','Biology','Microbiology','Biochemistry','Statistics'],
+  'Arts': ['English','History','Philosophy','Theatre Arts','Linguistics','Religious Studies'],
+  'Social Sciences': ['Economics','Political Science','Psychology','Sociology','Mass Communication'],
+  'Engineering': ['Computer Engineering','Electrical Engineering','Mechanical Engineering','Civil Engineering','Chemical Engineering'],
+  'Medicine': ['Medicine & Surgery','Nursing','Pharmacy','Medical Laboratory Science'],
+  'Law': ['Law'],
+  'Agriculture': ['Agricultural Economics','Animal Science','Crop Science','Soil Science'],
+  'Education': ['Educational Administration','Guidance & Counselling','Curriculum Studies'],
+  'Management Sciences': ['Business Administration','Accounting','Marketing','Banking & Finance','Entrepreneurship'],
+  'Environmental Sciences': ['Architecture','Estate Management','Urban & Regional Planning'],
+}
+
+// Product Categories
 export const PRODUCT_CATEGORIES = [
-  // Digital Products
-  "Notes & PDFs",
-  "Tutorials",
-  "Templates",
-  "Mini-Courses",
-  "Study Guides",
-  "Past Questions",
-  "Project Materials",
-  "Design Assets",
-  "E-Books",
-  "Software & Tools",
-  // Physical Products
-  "Wears & Clothing",
-  "Skincare & Beauty",
-  "Footwear",
-  "Accessories",
-  "Gadgets & Electronics",
-  "Food & Snacks",
-  "Handmade Crafts",
-  "Art & Prints",
-  "Event Tickets",
-  "Services",
-] as const;
+  { id: 'notes', name: 'Class Notes', icon: 'BookOpen', type: 'digital' as const },
+  { id: 'tutorials', name: 'Tutorials', icon: 'Video', type: 'digital' as const },
+  { id: 'templates', name: 'Templates', icon: 'FileText', type: 'digital' as const },
+  { id: 'ebooks', name: 'E-Books', icon: 'Book', type: 'digital' as const },
+  { id: 'past-questions', name: 'Past Questions', icon: 'ClipboardList', type: 'digital' as const },
+  { id: 'software', name: 'Software/Tools', icon: 'Code', type: 'digital' as const },
+  { id: 'wears', name: 'Wears & Fashion', icon: 'Shirt', type: 'physical' as const },
+  { id: 'skincare', name: 'Skincare', icon: 'Sparkles', type: 'physical' as const },
+  { id: 'footwear', name: 'Footwear', icon: 'Footprints', type: 'physical' as const },
+  { id: 'gadgets', name: 'Gadgets', icon: 'Smartphone', type: 'physical' as const },
+  { id: 'community', name: 'Communities', icon: 'Users', type: 'community' as const },
+]
 
-export const COMMUNITY_TYPES = [
-  "Study Group",
-  "Course Community",
-  "Skill Hub",
-  "Campus Life",
-  "Career Network",
-  "Buy & Sell",
-  "Hostel & Accommodation",
-  "Event & Entertainment",
-] as const;
-
-export const MOCK_PAYMENT_STATUS = {
-  IDLE: "idle",
-  PROCESSING: "processing",
-  SUCCESS: "success",
-  FAILED: "failed",
-} as const;
+// Testimonials
+export const TESTIMONIALS = [
+  { id: '1', name: 'Chidinma Okafor', school: 'University of Lagos', role: 'Creator', content: 'I made N150,000 in my first month selling my 300-level Computer Science notes. CampusWhop changed everything for me.', rating: 5 },
+  { id: '2', name: 'Emmanuel Adeyemi', school: 'AE-FUNAI', role: 'Buyer', content: 'Found the exact past questions I needed for my exams. Saved me hours of searching.', rating: 5 },
+  { id: '3', name: 'Amina Bello', school: 'Ahmadu Bello University', role: 'Creator', content: 'Started a paid study group. Now I have 200+ members paying N500/month. Best side hustle ever.', rating: 5 },
+  { id: '4', name: 'David Nw

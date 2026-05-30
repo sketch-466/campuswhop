@@ -1,239 +1,250 @@
+// src/app/dashboard/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { createClient } from "@/lib/supabase/client";
-import { formatPrice } from "@/lib/utils";
-import { 
-  TrendingUp, ShoppingBag, Users, BookOpen, Plus, ArrowRight,
-  DollarSign, Package, MessageSquare 
+import {
+  BarChart3,
+  Package,
+  Users,
+  DollarSign,
+  TrendingUp,
+  ArrowRight,
+  Plus,
 } from "lucide-react";
 
-interface DashboardStats {
-  totalSales: number;
-  totalRevenue: number;
-  productsCount: number;
-  communitiesCount: number;
-}
-
 export default function DashboardPage() {
-  const [stats, setStats] = useState<DashboardStats>({
+  const router = useRouter();
+  const supabase = createClientComponentClient();
+  const [user, setUser] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(null);
+  const [stats, setStats] = useState({
     totalSales: 0,
+    totalProducts: 0,
+    totalCommunities: 0,
     totalRevenue: 0,
-    productsCount: 0,
-    communitiesCount: 0,
   });
-  const [recentProducts, setRecentProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const supabase = createClient();
 
   useEffect(() => {
-    fetchDashboardData();
+    checkUser();
   }, []);
 
-  const fetchDashboardData = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+  const checkUser = async () => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
 
-      const { data: creator } = await supabase
-        .from("creators")
-        .select("*")
-        .eq("profile_id", user.id)
-        .single();
-
-      if (creator) {
-        setStats({
-          totalSales: creator.total_sales || 0,
-          totalRevenue: creator.total_revenue || 0,
-          productsCount: 0,
-          communitiesCount: 0,
-        });
-
-        const { data: products } = await supabase
-          .from("products")
-          .select("*")
-          .eq("creator_id", creator.id)
-          .order("created_at", { ascending: false })
-          .limit(5);
-
-        setRecentProducts(products || []);
-      }
-    } catch (error) {
-      console.error("Dashboard error:", error);
-    } finally {
-      setLoading(false);
+    if (!session) {
+      router.push("/login");
+      return;
     }
+
+    setUser(session.user);
+
+    // Fetch creator profile
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", session.user.id)
+      .single();
+
+    if (profileData) {
+      setProfile(profileData);
+    } else {
+      // No profile exists — redirect to create-profile
+      router.push("/create-profile");
+      return;
+    }
+
+    // Fetch stats
+    const { count: productCount } = await supabase
+      .from("products")
+      .select("*", { count: "exact", head: true })
+      .eq("creator_id", session.user.id);
+
+    const { count: communityCount } = await supabase
+      .from("communities")
+      .select("*", { count: "exact", head: true })
+      .eq("creator_id", session.user.id);
+
+    setStats({
+      totalSales: 0,
+      totalProducts: productCount || 0,
+      totalCommunities: communityCount || 0,
+      totalRevenue: 0,
+    });
+
+    setLoading(false);
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
-        <div className="animate-spin h-8 w-8 border-2 border-whop-accent border-t-transparent rounded-full" />
+      <div className="min-h-screen flex items-center justify-center bg-gray-950">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500" />
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white">Dashboard</h1>
-        <p className="text-gray-400">Manage your creator business</p>
-      </div>
-
-      <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4">
-        <Card className="border-whop-border bg-whop-card">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-whop-accent/10 p-2">
-                <DollarSign className="h-5 w-5 text-whop-accent" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-400">Revenue</p>
-                <p className="text-xl font-bold text-white">{formatPrice(stats.totalRevenue)}</p>
-              </div>
+    <div className="min-h-screen bg-gray-950 text-white">
+      {/* Header */}
+      <div className="border-b border-gray-800 bg-gray-900/50 backdrop-blur-xl">
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold">
+                Welcome back, {profile?.full_name || "Creator"}
+              </h1>
+              <p className="text-gray-400 mt-1">
+                {profile?.university || "CampusWhop Creator"}
+              </p>
             </div>
-          </CardContent>
-        </Card>
-        <Card className="border-whop-border bg-whop-card">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-green-500/10 p-2">
-                <ShoppingBag className="h-5 w-5 text-green-500" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-400">Sales</p>
-                <p className="text-xl font-bold text-white">{stats.totalSales}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-whop-border bg-whop-card">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-blue-500/10 p-2">
-                <Package className="h-5 w-5 text-blue-500" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-400">Products</p>
-                <p className="text-xl font-bold text-white">{stats.productsCount}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-whop-border bg-whop-card">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-purple-500/10 p-2">
-                <Users className="h-5 w-5 text-purple-500" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-400">Communities</p>
-                <p className="text-xl font-bold text-white">{stats.communitiesCount}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Link href="/dashboard/products">
-          <Card className="border-whop-border bg-whop-card hover:border-whop-accent/50 transition-colors cursor-pointer">
-            <CardContent className="flex items-center justify-between p-6">
-              <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-whop-accent/10 p-3">
-                  <Plus className="h-6 w-6 text-whop-accent" />
-                </div>
-                <div>
-                  <h3 className="font-medium text-white">New Product</h3>
-                  <p className="text-sm text-gray-400">Sell digital products</p>
-                </div>
-              </div>
-              <ArrowRight className="h-5 w-5 text-gray-500" />
-            </CardContent>
-          </Card>
-        </Link>
-        <Link href="/dashboard/communities">
-          <Card className="border-whop-border bg-whop-card hover:border-whop-accent/50 transition-colors cursor-pointer">
-            <CardContent className="flex items-center justify-between p-6">
-              <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-blue-500/10 p-3">
-                  <Users className="h-6 w-6 text-blue-500" />
-                </div>
-                <div>
-                  <h3 className="font-medium text-white">New Community</h3>
-                  <p className="text-sm text-gray-400">Build a paid community</p>
-                </div>
-              </div>
-              <ArrowRight className="h-5 w-5 text-gray-500" />
-            </CardContent>
-          </Card>
-        </Link>
-        <Link href="/dashboard/analytics">
-          <Card className="border-whop-border bg-whop-card hover:border-whop-accent/50 transition-colors cursor-pointer">
-            <CardContent className="flex items-center justify-between p-6">
-              <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-green-500/10 p-3">
-                  <TrendingUp className="h-6 w-6 text-green-500" />
-                </div>
-                <div>
-                  <h3 className="font-medium text-white">Analytics</h3>
-                  <p className="text-sm text-gray-400">View detailed stats</p>
-                </div>
-              </div>
-              <ArrowRight className="h-5 w-5 text-gray-500" />
-            </CardContent>
-          </Card>
-        </Link>
-      </div>
-
-      <Card className="border-whop-border bg-whop-card">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-white">Recent Products</CardTitle>
-          <Link href="/dashboard/products">
-            <Button variant="ghost" className="text-whop-accent hover:text-whop-accent/90">
-              View All
-            </Button>
-          </Link>
-        </CardHeader>
-        <CardContent>
-          {recentProducts.length === 0 ? (
-            <div className="text-center py-8">
-              <Package className="mx-auto h-12 w-12 text-gray-600 mb-4" />
-              <p className="text-gray-400">No products yet</p>
-              <Link href="/dashboard/products">
-                <Button className="mt-4 bg-whop-accent hover:bg-whop-accent/90 text-white">
-                  Create Your First Product
-                </Button>
+            <div className="flex gap-3">
+              <Link
+                href="/dashboard/products"
+                className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-500 rounded-lg text-sm font-medium transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                New Product
               </Link>
             </div>
-          ) : (
-            <div className="space-y-4">
-              {recentProducts.map((product) => (
-                <div key={product.id} className="flex items-center justify-between rounded-lg border border-whop-border p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-lg bg-whop-accent/10 flex items-center justify-center">
-                      <BookOpen className="h-5 w-5 text-whop-accent" />
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-white">{product.title}</h4>
-                      <p className="text-sm text-gray-500">{product.category} • {product.sales_count} sales</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <span className="text-whop-accent font-medium">{formatPrice(product.price)}</span>
-                    <span className={`text-xs px-2 py-1 rounded-full ${product.is_published ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500'}`}>
-                      {product.is_published ? "Live" : "Draft"}
-                    </span>
-                  </div>
-                </div>
-              ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard
+            icon={<DollarSign className="w-5 h-5" />}
+            label="Total Revenue"
+            value={`₦${stats.totalRevenue.toLocaleString()}`}
+            trend="+0%"
+          />
+          <StatCard
+            icon={<Package className="w-5 h-5" />}
+            label="Products"
+            value={stats.totalProducts.toString()}
+            href="/dashboard/products"
+          />
+          <StatCard
+            icon={<Users className="w-5 h-5" />}
+            label="Communities"
+            value={stats.totalCommunities.toString()}
+            href="/dashboard/communities"
+          />
+          <StatCard
+            icon={<BarChart3 className="w-5 h-5" />}
+            label="Total Sales"
+            value={stats.totalSales.toString()}
+            trend="+0%"
+          />
+        </div>
+
+        {/* Quick Actions */}
+        <div className="mt-8 grid md:grid-cols-2 gap-4">
+          <QuickActionCard
+            title="Upload a Product"
+            description="Sell notes, templates, or digital resources"
+            icon={<Package className="w-6 h-6" />}
+            href="/dashboard/products"
+            color="bg-blue-500/10 text-blue-400"
+          />
+          <QuickActionCard
+            title="Create Community"
+            description="Build a paid community for your coursemates"
+            icon={<Users className="w-6 h-6" />}
+            href="/dashboard/communities"
+            color="bg-purple-500/10 text-purple-400"
+          />
+        </div>
+
+        {/* Analytics Teaser */}
+        <div className="mt-8">
+          <Link
+            href="/dashboard/analytics"
+            className="flex items-center justify-between p-6 rounded-xl bg-gray-900 border border-gray-800 hover:border-gray-700 transition-colors group"
+          >
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-lg bg-green-500/10 text-green-400">
+                <TrendingUp className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="font-semibold">View Analytics</h3>
+                <p className="text-gray-400 text-sm">
+                  Track your sales, views, and growth
+                </p>
+              </div>
             </div>
-          )}
-        </CardContent>
-      </Card>
+            <ArrowRight className="w-5 h-5 text-gray-500 group-hover:text-white transition-colors" />
+          </Link>
+        </div>
+      </div>
     </div>
+  );
+}
+
+function StatCard({
+  icon,
+  label,
+  value,
+  trend,
+  href,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  trend?: string;
+  href?: string;
+}) {
+  const content = (
+    <div className="p-4 rounded-xl bg-gray-900 border border-gray-800 hover:border-gray-700 transition-colors">
+      <div className="flex items-center justify-between mb-3">
+        <div className="p-2 rounded-lg bg-gray-800 text-gray-400">{icon}</div>
+        {trend && (
+          <span className="text-xs text-green-400 font-medium">{trend}</span>
+        )}
+      </div>
+      <p className="text-2xl font-bold">{value}</p>
+      <p className="text-sm text-gray-400 mt-1">{label}</p>
+    </div>
+  );
+
+  if (href) {
+    return <Link href={href}>{content}</Link>;
+  }
+  return content;
+}
+
+function QuickActionCard({
+  title,
+  description,
+  icon,
+  href,
+  color,
+}: {
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  href: string;
+  color: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="flex items-start gap-4 p-6 rounded-xl bg-gray-900 border border-gray-800 hover:border-gray-700 transition-colors group"
+    >
+      <div className={`p-3 rounded-lg ${color}`}>{icon}</div>
+      <div className="flex-1">
+        <h3 className="font-semibold group-hover:text-green-400 transition-colors">
+          {title}
+        </h3>
+        <p className="text-sm text-gray-400 mt-1">{description}</p>
+      </div>
+      <ArrowRight className="w-5 h-5 text-gray-600 group-hover:text-white transition-colors mt-1" />
+    </Link>
   );
 }
